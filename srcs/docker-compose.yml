@@ -1,0 +1,120 @@
+services:
+  nginx:
+    build: ./requirements/nginx
+    image: nginx:nginx
+    container_name: nginx
+    restart: unless-stopped
+    volumes:
+      - wordpress_vol:/var/www/html/wordpress
+      - /home/aakhrif/data/my-website:/var/www/html/my-website
+    ports:
+      - 443:443
+      - 444:80
+    networks:
+      - inception
+    depends_on:
+      - wordpress
+  mariadb:
+    build:  ./requirements/mariadb
+    image: mariadb:mariadb
+    container_name: mariadb
+    restart: unless-stopped
+    volumes:
+      - mariadb_vol:/var/lib/mysql
+    networks:
+      - inception
+    env_file:
+      - .env
+  wordpress:
+    build:  ./requirements/wordpress
+    image: wordpress:wordpress
+    container_name: wordpress
+    restart: unless-stopped
+    volumes:
+      - wordpress_vol:/var/www/html/wordpress
+    networks:
+      - inception
+    depends_on:
+      - mariadb
+      - redis-bonus
+    env_file:
+      - .env
+    # bonus
+  adminer-bonus:
+    build:  ./requirements/bonus/adminer
+    image: adminer:adminer
+    container_name: adminer
+    restart: unless-stopped
+    volumes:
+      - /home/aakhrif/data/wordpress/adminer:/var/www/html/adminer
+    ports:
+      - 8080:8080
+    networks:
+      - inception
+    depends_on:
+      - mariadb
+      - wordpress
+      - nginx
+    # 
+  my-website-bonus:
+    build: ./requirements/bonus/my-website
+    image: my-website:my-website
+    container_name: my-website
+    restart: unless-stopped
+    volumes:
+      - /home/aakhrif/data/my-website:/home/website
+    networks:
+      - inception
+    depends_on:
+      - nginx
+    #
+  portainer-bonus:
+    build: ./requirements/bonus/portainer
+    image: portainer:portainer
+    container_name: portainer
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 9000:9000
+    #
+  redis-bonus:
+    build: ./requirements/bonus/redis
+    image: redis:redis
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - 6379:6379
+    networks:
+      - inception
+    #
+  ftp-bonus:
+    build: ./requirements/bonus/ftp
+    image: ftp-server:ftp-server
+    container_name: ftp-server
+    restart: unless-stopped
+    volumes:
+      - /home/aakhrif/data/wordpress:/home/ftpdata
+    ports:
+      - 20:20
+      - 21:21
+    networks:
+      - inception
+
+
+networks:
+  inception:
+    driver : bridge
+
+
+volumes:
+  mariadb_vol:
+    driver_opts:
+      type: none
+      device: /home/aakhrif/data/mariadb
+      o: bind
+  wordpress_vol:
+    driver_opts:
+      type: none
+      device: /home/aakhrif/data/wordpress
+      o: bind
