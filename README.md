@@ -89,10 +89,6 @@
   - `make down` - Stop and remove all containers.
   - `make clean` - Remove all generated data and images.
 
-## Contributing
-
-Contributions are welcome! Please open an issue or submit a pull request for suggestions, improvements, or bug fixes.
-
 ## Acknowledgements
 
 - [Docker](https://www.docker.com/)
